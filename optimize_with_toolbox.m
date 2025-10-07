@@ -1,5 +1,17 @@
-function optimize_with_toolbox()
+function optimize_with_toolbox(population_size, crossover_fraction)
     % Main script to optimize RCM position using the MATLAB Global Optimization Toolbox.
+    %
+    % ARGS:
+    %   population_size (optional): The number of individuals in the population. Default is 100.
+    %   crossover_fraction (optional): The fraction of the next generation created by crossover. Default is 0.8.
+
+    % --- Handle optional arguments ---
+    if nargin < 2
+        crossover_fraction = 0.8;
+    end
+    if nargin < 1
+        population_size = 100;
+    end
 
     % --- Dependencies ---
     % This script requires the following:
@@ -31,9 +43,12 @@ function optimize_with_toolbox()
 
         % Configure GA options
         options = optimoptions('ga', ...
+            'PopulationSize', population_size, ...
+            'CrossoverFraction', crossover_fraction, ...
+            'MaxStallGenerations', 10, ...
             'Display', 'iter', ...
-            'UseParallel', true, ...
-            'MaxStallGenerations', 10);
+            'PlotFcn', @gaplotbestf, ...
+            'UseParallel', true);
 
         % Run the GA
         [optimal_params, max_wr_neg] = ga(objFun, nvars, [], [], [], [], lb, ub, [], options);
