@@ -1,11 +1,19 @@
-function optimize_with_toolbox(population_size, crossover_fraction)
+function optimize_with_toolbox(population_size, crossover_fraction, migration_fraction, migration_interval)
     % Main script to optimize RCM position using the MATLAB Global Optimization Toolbox.
     %
     % ARGS:
     %   population_size (optional): The number of individuals in the population. Default is 100.
     %   crossover_fraction (optional): The fraction of the next generation created by crossover. Default is 0.8.
+    %   migration_fraction (optional): Fraction of individuals that migrate between subpopulations. Default is 0.2.
+    %   migration_interval (optional): Number of generations between migrations. Default is 20.
 
     % --- Handle optional arguments ---
+    if nargin < 4
+        migration_interval = 20;
+    end
+    if nargin < 3
+        migration_fraction = 0.2;
+    end
     if nargin < 2
         crossover_fraction = 0.8;
     end
@@ -42,9 +50,16 @@ function optimize_with_toolbox(population_size, crossover_fraction)
         objFun = @(params) -objectiveFunction(params, domain, robot);
 
         % Configure GA options
+        % For flat fitness landscapes, increasing exploration is key.
+        % - Use migration to move individuals between subpopulations to escape local optima.
+        % - Increase mutation by lowering the CrossoverFraction (e.g., to 0.6 or 0.7).
+        %   The remaining fraction (e.g., 0.4 or 0.3) will be created by mutation.
         options = optimoptions('ga', ...
             'PopulationSize', population_size, ...
             'CrossoverFraction', crossover_fraction, ...
+            'MigrationDirection', 'both', ...
+            'MigrationInterval', migration_interval, ...
+            'MigrationFraction', migration_fraction, ...
             'MaxStallGenerations', 10, ...
             'Display', 'iter', ...
             'PlotFcn', @gaplotbestf, ...
